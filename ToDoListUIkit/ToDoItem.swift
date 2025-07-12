@@ -1,6 +1,6 @@
 import Foundation
 
-struct ToDoItem{
+struct ToDoItem: Codable{
     var name: String
     var isCompleted: Bool = false
     var id: UUID = UUID()

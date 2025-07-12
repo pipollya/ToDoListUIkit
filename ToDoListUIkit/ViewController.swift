@@ -1,96 +1,112 @@
-
-
 import UIKit
 
+
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    
-    var todos:[ToDoItem] = [ToDoItem(name: "test item")]
-    
-    override func viewDidLoad(){
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        
-        view.addSubview(tableView)
-        constrainTableView()
-        configureTableView()
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(openAlert))
-                            
-    }
-                                                            
-                                                            
-    
-    var tableView:UITableView = {
+
+    // MARK: - Properties
+    private var todos: [ToDoItem] = []
+
+    private let todosKey = "todos_storage_key"
+
+    private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
-        
     }()
-                                                            
-    @objc func openAlert() {
-        let alert = UIAlertController(title: "Create todo", message: "", preferredStyle: .alert)
-        alert.addTextField()
-        
-        let saveButton = UIAlertAction(title: "Save", style: .default) { _ in
-            if let textName = alert.textFields?.first?.text {
-                self.addTodo(name: textName)
-                
-            }
-        }
-        
-       
-        alert.addAction(saveButton)
-        
-        let cancelButton = UIAlertAction(title: "Cancel", style: .destructive)
-        alert.addAction(cancelButton)
-        
-        present(alert, animated: true)
+
+    // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+
+        loadTodos()
+
+        view.addSubview(tableView)
+        constrainTableView()
+        configureTableView()
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(openAlert)
+        )
     }
 
-    
-    func addTodo(name:String){
-        todos.append(ToDoItem(name: name))
-        tableView.reloadData()
-        
-    }
-    
-    
-    func constrainTableView(){
+    // MARK: - UI Setup
+    private func constrainTableView() {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            ])
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+        ])
     }
-    
-    func configureTableView(){
+
+    private func configureTableView() {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "todoCell")
         tableView.allowsSelection = false
     }
-    
-    
-    
-    
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return todos.count
+
+    // MARK: - Alert & Data Handling
+    @objc private func openAlert() {
+        let alert = UIAlertController(title: "Create todo", message: nil, preferredStyle: .alert)
+        alert.addTextField()
+
+        let saveAction = UIAlertAction(title: "Save", style: .default) { _ in
+            if let textName = alert.textFields?.first?.text, !textName.isEmpty {
+                self.addTodo(name: textName)
+            }
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .destructive)
+
+        alert.addAction(saveAction)
+        alert.addAction(cancelAction)
+        present(alert, animated: true)
     }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell =  UITableViewCell(style: .subtitle, reuseIdentifier: "todoCell")
+
+    private func addTodo(name: String) {
+        todos.append(ToDoItem(name: name))
+        saveTodos()
+        tableView.reloadData()
+    }
+
+    // MARK: - Persistence
+    private func saveTodos() {
+        if let data = try? JSONEncoder().encode(todos) {
+            UserDefaults.standard.set(data, forKey: todosKey)
+        }
+    }
+
+    private func loadTodos() {
+        if
+            let data = UserDefaults.standard.data(forKey: todosKey),
+            let saved = try? JSONDecoder().decode([ToDoItem].self, from: data)
+        {
+            todos = saved
+        } else {
+            // Для первого запуска можно задать дефолтное значение
+            todos = [ToDoItem(name: "test item")]
+        }
+    }
+
+    // MARK: - UITableViewDataSource
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        todos.count
+    }
+
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        let cell = tableView.dequeueReusableCell(withIdentifier: "todoCell", for: indexPath)
         let todoItem = todos[indexPath.row]
+
         cell.textLabel?.text = todoItem.name
-        cell.accessoryType = .checkmark
-        
+        cell.accessoryType = todoItem.isCompleted ? .checkmark : .none
+
         return cell
     }
-    
-
-  
-
-
 }
+
 
