@@ -3,7 +3,7 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-    // MARK: - Properties
+   
     private var todos: [ToDoItem] = []
 
     private let todosKey = "todos_storage_key"
@@ -14,7 +14,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return tableView
     }()
 
-    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -32,7 +32,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         )
     }
 
-    // MARK: - UI Setup
+    
     private func constrainTableView() {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -49,7 +49,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.allowsSelection = false
     }
 
-    // MARK: - Alert & Data Handling
+  
     @objc private func openAlert() {
         let alert = UIAlertController(title: "Create todo", message: nil, preferredStyle: .alert)
         alert.addTextField()
@@ -72,7 +72,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.reloadData()
     }
 
-    // MARK: - Persistence
     private func saveTodos() {
         if let data = try? JSONEncoder().encode(todos) {
             UserDefaults.standard.set(data, forKey: todosKey)
@@ -86,12 +85,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         {
             todos = saved
         } else {
-            // Для первого запуска можно задать дефолтное значение
             todos = [ToDoItem(name: "test item")]
         }
     }
 
-    // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         todos.count
     }
